@@ -1,28 +1,24 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const { Pool } = require('pg');
+const { MongoClient } = require('mongodb');
 const shortid = require('shortid');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// تكوين قاعدة بيانات PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // متغير بيئة Railway
-  ssl: {
-    rejectUnauthorized: false, // يجب تعديل هذا في بيئة الإنتاج
-  },
-});
+// تكوين قاعدة بيانات MongoDB
+const mongoUri = process.env.MONGODB_URI; // متغير بيئة Railway
+const client = new MongoClient(mongoUri);
 
 async function connectToDatabase() {
   try {
-    const client = await pool.connect();
-    console.log('Connected to PostgreSQL');
-    return client;
+    await client.connect();
+    console.log('Connected to MongoDB');
+    return client.db();
   } catch (err) {
-    console.error('Error connecting to PostgreSQL', err);
+    console.error('Error connecting to MongoDB', err);
     throw err;
   }
 }
@@ -31,42 +27,23 @@ async function connectToDatabase() {
 app.use(express.static('public'));
 app.use(express.json()); // لتمكين تحليل JSON في الطلبات
 
-// إنشاء جدول الألعاب في PostgreSQL إذا لم يكن موجودًا
-async function createGamesTable() {
-  const client = await connectToDatabase();
-  try {
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS games (
-        gameId VARCHAR(6) PRIMARY KEY,
-        question TEXT,
-        players TEXT[],
-        predictions JSON[]
-      )
-    `);
-  } finally {
-    client.release();
-  }
-}
-
-createGamesTable();
-
 // إنشاء لعبة جديدة
 app.post('/createGame', async (req, res) => {
   const question = req.body.question;
   const gameId = shortid.generate().substring(0, 6); // رمز تعريف فريد 6 خانات
-  const client = await connectToDatabase();
+  const db = await connectToDatabase();
 
   try {
-    await client.query(
-      'INSERT INTO games (gameId, question, players, predictions) VALUES ($1, $2, $3, $4)',
-      [gameId, question, [], []]
-    );
+    await db.collection('games').insertOne({
+      gameId,
+      question,
+      players: [],
+      predictions: [],
+    });
     res.json({ gameId });
   } catch (err) {
     console.error('Error creating game', err);
     res.status(500).json({ error: 'Failed to create game' });
-  } finally {
-    client.release();
   }
 });
 
@@ -74,46 +51,42 @@ app.post('/createGame', async (req, res) => {
 app.post('/joinGame', async (req, res) => {
   const gameId = req.body.gameId;
   const playerName = req.body.playerName;
-  const client = await connectToDatabase();
+  const db = await connectToDatabase();
 
   try {
-    const result = await client.query('SELECT * FROM games WHERE gameId = $1', [gameId]);
-    if (result.rows.length === 0) {
+    const game = await db.collection('games').findOne({ gameId });
+    if (!game) {
       return res.status(404).json({ error: 'Game not found' });
     }
-    const game = result.rows[0];
 
     if (game.players.length >= 5) {
       return res.status(400).json({ error: 'Game is full' });
     }
 
-    await client.query('UPDATE games SET players = array_append(players, $1) WHERE gameId = $2', [
-      playerName,
-      gameId,
-    ]);
+    await db.collection('games').updateOne(
+      { gameId },
+      { $push: { players: playerName } }
+    );
 
     res.json({ success: true });
   } catch (err) {
     console.error('Error joining game', err);
     res.status(500).json({ error: 'Failed to join game' });
-  } finally {
-    client.release();
   }
 });
 
 // استقبال التوقعات
 io.on('connection', (socket) => {
   socket.on('submitPrediction', async ({ gameId, playerName, prediction }) => {
-    const client = await connectToDatabase();
+    const db = await connectToDatabase();
 
     try {
-      await client.query(
-        'UPDATE games SET predictions = array_append(predictions, $1) WHERE gameId = $2',
-        [{ playerName, prediction }, gameId]
+      await db.collection('games').updateOne(
+        { gameId },
+        { $push: { predictions: { playerName, prediction } } }
       );
 
-      const result = await client.query('SELECT * FROM games WHERE gameId = $1', [gameId]);
-      const game = result.rows[0];
+      const game = await db.collection('games').findOne({ gameId });
 
       if (game.predictions.length === game.players.length) {
         io.to(gameId).emit('allPredictions', game.predictions);
@@ -124,8 +97,6 @@ io.on('connection', (socket) => {
       socket.join(gameId); // انضمام المستخدم إلى غرفة اللعبة
     } catch (err) {
       console.error('Error submitting prediction', err);
-    } finally {
-      client.release();
     }
   });
 });
