@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Prediction Game</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="createGameSection">
+    <h2>Create a New Game</h2>
+    <input type="text" id="questionInput" placeholder="Enter your question">
+    <button id="createGameButton">Create Game</button>
+  </div>
+
+  <div id="joinGameSection" style="display: none;">
+    <h2>Join a Game</h2>
+    <input type="text" id="gameIdInput" placeholder="Enter Game ID">
+    <input type="text" id="playerNameInput" placeholder="Enter your name">
+    <button id="joinGameButton">Join Game</button>
+  </div>
+
+  <div id="predictionSection" style="display: none;">
+    <h2>Make Your Prediction</h2>
+    <textarea id="predictionText" placeholder="Enter your prediction"></textarea>
+    <button id="submitPredictionButton">Submit Prediction</button>
+    <p id="predictionCount"></p>
+  </div>
+
+  <div id="resultsSection" style="display: none;">
+    <h2>Predictions</h2>
+    <div id="predictionsContainer"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
