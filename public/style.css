@@ -1,0 +1,23 @@
+body {
+    font-family: sans-serif;
+    text-align: center;
+  }
+  
+  .prediction-card {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px;
+    text-align: left;
+  }
+  #createGameSection{
+    border: 1px solid black;
+    width: 40%;
+    margin: auto;
+    padding: 20px;
+  }
+  #joinGameSection{
+      border: 1px solid rgb(5, 5, 5);
+      width: 40%;
+      margin: auto;
+      padding: 20px;
+  }
