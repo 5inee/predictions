@@ -19,60 +19,70 @@ let gameId;
 let playerName;
 
 createGameButton.addEventListener('click', async () => {
-  const question = questionInput.value;
-  const response = await fetch('/createGame', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ question }),
-  });
-  const data = await response.json();
-  gameId = data.gameId;
-  gameIdInput.value = gameId; // تعيين رمز اللعبة في حقل الانضمام
-  createGameSection.style.display = 'none'; // اخفاء قسم انشاء اللعبة
+    const question = questionInput.value;
+    try {
+        const response = await fetch('/createGame', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ question }),
+        });
+        const data = await response.json();
+        gameId = data.gameId;
+        gameIdInput.value = gameId; // تعيين رمز اللعبة في حقل الانضمام
+        createGameSection.style.display = 'none'; // اخفاء قسم انشاء اللعبة
+    } catch (error) {
+        console.error('Error creating game:', error);
+        alert('Failed to create game. Please try again.');
+    }
 });
 
 joinGameButton.addEventListener('click', async () => {
-  gameId = gameIdInput.value;
-  playerName = playerNameInput.value;
-  const response = await fetch('/joinGame', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ gameId, playerName }),
-  });
-  const data = await response.json();
-  if (data.success) {
-    joinGameSection.style.display = 'none';
-    predictionSection.style.display = 'block';
-  } else {
-    alert(data.error);
-  }
+    gameId = gameIdInput.value;
+    playerName = playerNameInput.value;
+    try {
+        const response = await fetch('/joinGame', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ gameId, playerName }),
+        });
+        const data = await response.json();
+        if (data.success) {
+            joinGameSection.style.display = 'none';
+            predictionSection.style.display = 'block';
+        } else {
+            alert(data.error);
+        }
+    } catch (error) {
+        console.error('Error joining game:', error);
+        alert('Failed to join game. Please try again.');
+    }
 });
 
 submitPredictionButton.addEventListener('click', () => {
-  const prediction = predictionText.value;
-  socket.emit('submitPrediction', { gameId, playerName, prediction });
-  predictionText.value = '';
+    const prediction = predictionText.value;
+    socket.emit('submitPrediction', { gameId, playerName, prediction });
+    predictionText.value = '';
 });
 
 socket.on('allPredictions', (predictions) => {
-  predictionSection.style.display = 'none';
-  resultsSection.style.display = 'block';
-  predictionsContainer.innerHTML = '';
-  predictions.forEach((prediction) => {
-    const predictionCard = document.createElement('div');
-    predictionCard.classList.add('prediction-card');
-    predictionCard.innerHTML = `
-      <h3>${prediction.playerName}</h3>
-      <p>${prediction.prediction}</p>
-    `;
-    predictionsContainer.appendChild(predictionCard);
-  });
+    predictionSection.style.display = 'none';
+    resultsSection.style.display = 'block';
+    predictionsContainer.innerHTML = '';
+    predictions.forEach((prediction) => {
+        const predictionCard = document.createElement('div');
+        predictionCard.classList.add('prediction-card');
+        predictionCard.innerHTML = `
+            <h3>${prediction.playerName}</h3>
+            <p>${prediction.prediction}</p>
+        `;
+        predictionsContainer.appendChild(predictionCard);
+    });
 });
 
 socket.on('predictionCount', (count) => {
-  predictionCountDisplay.textContent = `Predictions: ${count}/5`;
+    predictionCountDisplay.textContent = `Predictions: ${count}/5`;
 });
