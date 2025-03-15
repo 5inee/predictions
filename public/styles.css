@@ -63,6 +63,7 @@ header {
 }
 
 .game-card {
+  transition: opacity 0.3s ease, transform 0.3s ease;
   background-color: white;
   border-radius: 10px;
   box-shadow: var(--card-shadow);
@@ -372,3 +373,44 @@ textarea[readonly] {
   /*  تنسيقات إضافية هنا */
   font-size: 16px;
 }
+
+#loadingOverlay {
+  position: fixed; /* يثبت فوق كل شي */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* خلفية شبه شفافة */
+  display: flex;
+  justify-content: center; /* توسيط الـ spinner أفقيًا */
+  align-items: center; /* توسيط الـ spinner عموديًا */
+  z-index: 1000; /* يكون فوق كل العناصر الثانية */
+}
+
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3); /* حدود شفافة */
+  border-top: 4px solid #fff; /* جزء من الحدود بلون أبيض */
+  border-radius: 50%; /* يخليه دائرة */
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite; /* يخليه يدور */
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#createGameScreen, #gameScreen, #joinScreen {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#createGameScreen[style*="display: block"],
+  #gameScreen[style*="display: block"],
+  #joinScreen[style*="display: block"]
+   {
+      opacity: 1;
+      transform: translateY(0);
+  }
