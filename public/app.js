@@ -39,8 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Secret code constant
     const CORRECT_SECRET_CODE = '021';
 
-    // دالة لعرض إشعار
-    function showErrorToast(message) {
+    // دالة لعرض الإشعارات
+    function showToast(message, isSuccess = false) {
+        const backgroundColor = isSuccess
+            ? "linear-gradient(to right, #2ecc71, #27ae60)" // أخضر
+            : "linear-gradient(to right, #e74c3c, #c0392b)"; // أحمر
+
         Toastify({
             text: message,
             duration: 3000,
@@ -50,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
             position: "center",
             stopOnFocus: true,
             style: {
-                background: "linear-gradient(to right, #e74c3c, #c0392b)",
+                background: backgroundColor,
                 borderRadius: "10px",
             },
             onClick: function () { }
@@ -79,13 +83,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const secretCode = secretCodeInput.value.trim();
 
         if (!question) {
-            showErrorToast('Please enter a question for the game.');
+            showToast('Please enter a question for the game.');
             return;
         }
 
         // Validate the secret code
         if (secretCode !== CORRECT_SECRET_CODE) {
-            showErrorToast('Invalid secret code');
+            showToast('Invalid secret code');
             secretCodeError.style.display = 'block';
             secretCodeInput.classList.add('shake');
 
@@ -110,14 +114,16 @@ document.addEventListener('DOMContentLoaded', () => {
             createGameScreen.style.display = 'none';
             joinScreen.style.display = 'block';
 
-            showErrorToast(`Game created! Your Game Code is: ${data.gameId}`);
+            //  رسالة نجاح مع زر نسخ
+            showToast(`Game created! Your Game Code is: ${data.gameId}`, true);
+
 
             // Clear the secret code input for security
             secretCodeInput.value = '';
 
         } catch (error) {
             console.error('Error creating game:', error);
-            showErrorToast('Failed to create game. Please try again.');
+            showToast('Failed to create game. Please try again.');
         }
     });
 
@@ -127,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = usernameInput.value.trim();
 
         if (!gameId || !username) {
-            showErrorToast('Please enter both Game ID and your name');
+            showToast('Please enter both Game ID and your name');
             return;
         }
 
@@ -156,15 +162,36 @@ document.addEventListener('DOMContentLoaded', () => {
             userAvatar.textContent = username.charAt(0).toUpperCase();
 
             gameQuestionDisplay.textContent = data.game.question;
+
+            // هنا التغييرات:
             gameCodeDisplay.textContent = data.game.id;
+            gameCodeDisplay.addEventListener('click', copyGameId); // إضافة مستمع الحدث
+
+            // أضفنا هذا السطر:
+            predictionForm.style.display = 'block';
+            waitingMessage.style.display = 'block';
+            statusMessage.style.display = 'none';
+            predictionsList.style.display = 'none';
 
             socket.emit('join_game', currentGameId);
 
         } catch (error) {
             console.error('Error joining game:', error);
-            showErrorToast(error.message || 'Failed to join game. Please try again.');
+            showToast(error.message || 'Failed to join game. Please try again.');
         }
     });
+
+      // دالة لنسخ الـ Game ID
+    function copyGameId() {
+        navigator.clipboard.writeText(currentGameId)
+            .then(() => {
+                showToast("Game ID copied!", true);
+            })
+            .catch(err => {
+                console.error('Failed to copy Game ID:', err);
+                showToast("Failed to copy Game ID.");
+            });
+    }
 
     // لصق التوقع
     pastePredictionBtn.addEventListener('click', async () => {
@@ -173,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
             predictionInput.value = text;
         } catch (err) {
             console.error('Failed to read clipboard:', err);
-            showErrorToast('Failed to paste. Please make sure you have copied text to your clipboard.');
+            showToast('Failed to paste. Please make sure you have copied text to your clipboard.');
         }
     });
 
@@ -187,12 +214,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const prediction = predictionInput.value.trim();
 
         if (!prediction) {
-            showErrorToast("Please paste your prediction before submitting.");
+            showToast("Please paste your prediction before submitting.");
             return;
         }
 
         if (hasSubmitted) {
-            showErrorToast('You have already submitted a prediction');
+            showToast('You have already submitted a prediction');
             return;
         }
 
@@ -216,16 +243,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Error submitting prediction:', error);
-            showErrorToast(error.message || 'Failed to submit prediction. Please try again.');
+            showToast(error.message || 'Failed to submit prediction. Please try again.');
         }
     });
 
     // Socket.IO Event Handlers
 
-    // تحديث عدد اللاعبين
     socket.on('predictor_update', (data) => {
         if (playerCountDisplay) {
             playerCountDisplay.textContent = `Players: ${data.count}/${data.total}`;
+              // إذا وصل عدد اللاعبين للحد الأقصى، نخفي رسالة الانتظار
+            if (data.count === data.total) {
+                waitingMessage.style.display = 'none';
+            }
         }
     });
 
