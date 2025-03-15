@@ -10,18 +10,20 @@ const gameSchema = new mongoose.Schema({
         of: new mongoose.Schema({
             id: { type: String, required: true },
             username: { type: String, required: true },
-            avatarColor: { type: String }, // لون الصورة الرمزية
+            avatarColor: { type: String },
             joinedAt: { type: Date, default: Date.now }
-        }, { _id: false }) // Prevent Mongoose from creating _id for subdocuments
+        }, { _id: false }),
+        default: {} // هذا السطر هو التغيير
     },
     predictions: {
         type: Map,
         of: new mongoose.Schema({
             content: { type: String, required: true },
             submittedAt: { type: Date, default: Date.now }
-        }, { _id: false })
+        }, { _id: false }),
+        default: {} // Make predictions a Map by default
     },
-    revealedToAll: { type: Boolean, default: false }, // إضافة revealedToAll إلى السكيما
+    revealedToAll: { type: Boolean, default: false },
 
 }, { timestamps: true });
 

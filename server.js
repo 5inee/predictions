@@ -42,7 +42,7 @@ app.post('/api/games', async (req, res) => {
         await newGame.save();
         res.json({ gameId }); // نرجع ID اللعبة
     } catch (error) {
-        console.error("Error creating game:", error); // إضافة console.error
+        console.error("Error creating game:", error);
         res.status(500).json({ error: 'Failed to create game' });
     }
 });
@@ -57,16 +57,19 @@ app.post('/api/games/:gameId/join', async (req, res) => {
         if (!game) {
             return res.status(404).json({ error: 'Game not found' });
         }
-        if (Object.keys(game.predictors).length >= game.maxPredictors) {
+
+        // هنا التعديل:  نتأكد أن game.predictors موجود قبل ما نستخدم Object.keys()
+        if ((game.predictors?.size || 0) >= game.maxPredictors) {
             return res.status(400).json({ error: 'Game is full' });
         }
 
         const predictorId = uuidv4();
-        const predictorCount = Object.keys(game.predictors).length; // عدد اللاعبين قبل إضافة اللاعب الجديد
+        const predictorCount = game.predictors.size; //  استخدام .size
+
         game.predictors.set(predictorId, {
             id: predictorId,
             username,
-            avatarColor: getAvatarColor(predictorCount), // دالة بسيطة لتحديد لون
+            avatarColor: getAvatarColor(predictorCount),
             joinedAt: new Date(),
         });
 
@@ -74,7 +77,7 @@ app.post('/api/games/:gameId/join', async (req, res) => {
 
         // إرسال تحديث لكل اللاعبين في الغرفة
         io.to(gameId).emit('predictor_update', {
-            count: Object.keys(game.predictors).length, // عدد اللاعبين بعد الإضافة
+            count: game.predictors.size, //  .size
             total: game.maxPredictors,
         });
 
@@ -83,12 +86,12 @@ app.post('/api/games/:gameId/join', async (req, res) => {
             game: {
                 id: game.id,
                 question: game.question,
-                predictorCount: Object.keys(game.predictors).length,
+                predictorCount: game.predictors.size, //  .size
                 maxPredictors: game.maxPredictors,
             },
         });
     } catch (error) {
-        console.error("Error joining game:", error); // إضافة console.error
+        console.error("Error joining game:", error);
         res.status(500).json({ error: 'Failed to join game' });
     }
 });
@@ -119,7 +122,6 @@ app.post('/api/games/:gameId/predict', async (req, res) => {
         // إرسال تحديث لجميع اللاعبين في الغرفة بعدد التوقعات
         io.to(gameId).emit('prediction_update', { count: predictionsCount, total: game.maxPredictors });
 
-
         // إذا اكتمل عدد التوقعات، أرسل كل التوقعات
         if (allPredictionsSubmitted && !game.revealedToAll) {
             game.revealedToAll = true;
@@ -144,7 +146,7 @@ app.post('/api/games/:gameId/predict', async (req, res) => {
 
         res.json({ success: true, predictionsCount, allPredictionsSubmitted });
     } catch (error) {
-        console.error("Error submitting prediction:", error); // إضافة console.error
+        console.error("Error submitting prediction:", error);
         res.status(500).json({ error: 'Failed to submit prediction' });
     }
 });
