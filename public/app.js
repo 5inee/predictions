@@ -1,99 +1,99 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const socket = io(); // إنشاء اتصال Socket.IO
+    const socket = io();
 
-    // عناصر الـ DOM (الواجهة)
-    const joinScreen = document.getElementById('joinScreen'); // شاشة الانضمام
-    const createGameScreen = document.getElementById('createGameScreen'); // شاشة إنشاء لعبة
-    const gameScreen = document.getElementById('gameScreen'); // شاشة اللعبة
-    const gameIdInput = document.getElementById('gameId'); // حقل إدخال رمز اللعبة
-    const usernameInput = document.getElementById('username'); // حقل إدخال اسم المستخدم
-    const joinGameBtn = document.getElementById('joinGameBtn'); // زر "انضم إلى اللعبة"
-    const createGameBtn = document.getElementById('createGameBtn'); // زر "إنشاء لعبة جديدة"
-    const gameQuestionInput = document.getElementById('gameQuestion'); // حقل إدخال سؤال اللعبة
-    const secretCodeInput = document.getElementById('secretCode'); // حقل إدخال الرمز السري
-    const secretCodeError = document.getElementById('secretCodeError'); // رسالة خطأ الرمز السري
-    const createNewGameBtn = document.getElementById('createNewGameBtn'); // زر "إنشاء اللعبة" (داخل شاشة الإنشاء)
-    const backToJoinBtn = document.getElementById('backToJoinBtn'); // زر "رجوع" (داخل شاشة الإنشاء)
-    const userInfoElement = document.getElementById('userInfo'); // معلومات المستخدم (في شاشة اللعبة)
-    const usernameDisplay = document.getElementById('usernameDisplay'); // اسم المستخدم (في شاشة اللعبة)
-    const userAvatar = document.getElementById('userAvatar'); // صورة المستخدم الرمزية (في شاشة اللعبة)
-    const gameQuestionDisplay = document.querySelector('#gameScreen .game-title'); // عنوان اللعبة (سؤال اللعبة)
-    const gameCodeDisplay = document.querySelector('#gameCode span'); // رمز اللعبة (في شاشة اللعبة)
-    const waitingMessage = document.getElementById('waitingMessage'); // رسالة "في انتظار اللاعبين"
-    const playerCountDisplay = document.querySelector('.player-count'); // عدد اللاعبين
-    const predictionForm = document.getElementById('predictionForm'); // نموذج إرسال التوقع
-    const predictionInput = document.getElementById('prediction'); // حقل إدخال التوقع
-    const submitPredictionBtn = document.getElementById('submitPredictionBtn'); // زر "أرسل التوقع"
-    const pastePredictionBtn = document.getElementById('pastePredictionBtn'); // زر "لصق"
-    const clearPredictionBtn = document.getElementById('clearPredictionBtn'); // زر "مسح"
-    const statusMessage = document.getElementById('statusMessage'); // رسالة تأكيد الإرسال
-    const predictionCount = document.getElementById('predictionCount'); // عدد التوقعات المرسلة
-    const predictionsList = document.getElementById('predictionsList'); // قائمة التوقعات
-    const predictionsContainer = document.getElementById('predictionsContainer'); // العنصر اللي بتظهر فيه التوقعات
+    // DOM Elements
+    const joinScreen = document.getElementById('joinScreen');
+    const createGameScreen = document.getElementById('createGameScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const gameIdInput = document.getElementById('gameId');
+    const usernameInput = document.getElementById('username');
+    const joinGameBtn = document.getElementById('joinGameBtn');
+    const createGameBtn = document.getElementById('createGameBtn');
+    const gameQuestionInput = document.getElementById('gameQuestion');
+    const secretCodeInput = document.getElementById('secretCode');
+    const secretCodeError = document.getElementById('secretCodeError');
+    const createNewGameBtn = document.getElementById('createNewGameBtn');
+    const backToJoinBtn = document.getElementById('backToJoinBtn');
+    const userInfoElement = document.getElementById('userInfo');
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    const userAvatar = document.getElementById('userAvatar');
+    const gameQuestionDisplay = document.querySelector('#gameScreen .game-title');
+    const gameCodeDisplay = document.querySelector('#gameCode span');
+    const waitingMessage = document.getElementById('waitingMessage');
+    const playerCountDisplay = document.querySelector('.player-count');
+    const predictionForm = document.getElementById('predictionForm');
+    const predictionInput = document.getElementById('prediction');
+    const submitPredictionBtn = document.getElementById('submitPredictionBtn');
+    const pastePredictionBtn = document.getElementById('pastePredictionBtn');
+    const clearPredictionBtn = document.getElementById('clearPredictionBtn');
+    const statusMessage = document.getElementById('statusMessage');
+    const predictionCount = document.getElementById('predictionCount');
+    const predictionsList = document.getElementById('predictionsList');
+    const predictionsContainer = document.getElementById('predictionsContainer');
 
-    // متغيرات لتخزين حالة اللعبة
-    let currentGameId = null; // رمز اللعبة الحالية
-    let currentPredictorId = null; // معرّف المستخدم الحالي
-    let hasSubmitted = false; // هل أرسل المستخدم توقع؟
+    // App State
+    let currentGameId = null;
+    let currentPredictorId = null;
+    let hasSubmitted = false;
 
-    // الرمز السري الصحيح (ثابت)
+    // Secret code constant
     const CORRECT_SECRET_CODE = '021';
 
-    // دالة لعرض الإشعارات (Toastify)
+    // دالة لعرض الإشعارات
     function showToast(message, isSuccess = false) {
         const backgroundColor = isSuccess
-            ? "linear-gradient(to right, #2ecc71, #27ae60)" // أخضر (للنجاح)
-            : "linear-gradient(to right, #e74c3c, #c0392b)"; // أحمر (للخطأ)
+            ? "linear-gradient(to right, #2ecc71, #27ae60)" // أخضر
+            : "linear-gradient(to right, #e74c3c, #c0392b)"; // أحمر
 
         Toastify({
             text: message,
-            duration: 3000, // 3 ثواني
+            duration: 3000,
             newWindow: true,
             close: true,
-            gravity: "top", // يظهر فوق
-            position: "center", // في المنتصف
-            stopOnFocus: true, // يوقف العد التنازلي لما المستخدم يركز على الإشعار
+            gravity: "top",
+            position: "center",
+            stopOnFocus: true,
             style: {
                 background: backgroundColor,
                 borderRadius: "10px",
             },
-            onClick: function () { } // ما يسوي شي لما المستخدم يضغط على الإشعار
+            onClick: function () { }
         }).showToast();
     }
 
 
-    // مستمعات الأحداث (Event Listeners)
+    // Event Listeners
 
     // 1. إنشاء لعبة جديدة
     createGameBtn.addEventListener('click', () => {
-        joinScreen.style.display = 'none'; // إخفاء شاشة الانضمام
-        createGameScreen.style.display = 'block'; // إظهار شاشة إنشاء لعبة
-        // مسح أي رسائل خطأ سابقة
+        joinScreen.style.display = 'none';
+        createGameScreen.style.display = 'block';
+        // Clear any previous error messages
         secretCodeError.style.display = 'none';
         secretCodeInput.classList.remove('shake');
     });
 
     backToJoinBtn.addEventListener('click', () => {
-        createGameScreen.style.display = 'none'; // إخفاء شاشة إنشاء لعبة
-        joinScreen.style.display = 'block'; // إظهار شاشة الانضمام
+        createGameScreen.style.display = 'none';
+        joinScreen.style.display = 'block';
     });
 
     createNewGameBtn.addEventListener('click', async () => {
-        const question = gameQuestionInput.value.trim(); // سؤال اللعبة (بدون مسافات فارغة في البداية والنهاية)
-        const secretCode = secretCodeInput.value.trim(); // الرمز السري
+        const question = gameQuestionInput.value.trim();
+        const secretCode = secretCodeInput.value.trim();
 
         if (!question) {
-            showToast('الرجاء إدخال سؤال للعبة.');
+            showToast('Please enter a question for the game.');
             return;
         }
 
-        // التحقق من الرمز السري
+        // Validate the secret code
         if (secretCode !== CORRECT_SECRET_CODE) {
-            showToast('رمز سري خاطئ');
-            secretCodeError.style.display = 'block'; // إظهار رسالة الخطأ
-            secretCodeInput.classList.add('shake'); // إضافة مؤثر الاهتزاز
+            showToast('Invalid secret code');
+            secretCodeError.style.display = 'block';
+            secretCodeInput.classList.add('shake');
 
-            // إزالة مؤثر الاهتزاز بعد 500 مللي ثانية
+            // Remove the shake class after the animation completes
             setTimeout(() => {
                 secretCodeInput.classList.remove('shake');
             }, 500);
@@ -102,143 +102,146 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // إرسال طلب لإنشاء لعبة جديدة (API)
             const response = await fetch('/api/games', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question }), // إرسال السؤال
+                body: JSON.stringify({ question }),
             });
 
-            const data = await response.json(); // استقبال بيانات اللعبة الجديدة (فيها رمز اللعبة)
-            gameIdInput.value = data.gameId; // تعيين رمز اللعبة في حقل الإدخال (في شاشة الانضمام)
+            const data = await response.json();
+            gameIdInput.value = data.gameId;
 
-            createGameScreen.style.display = 'none'; // إخفاء شاشة إنشاء لعبة
-            joinScreen.style.display = 'block'; // إظهار شاشة الانضمام
+            createGameScreen.style.display = 'none';
+            joinScreen.style.display = 'block';
 
-            // رسالة نجاح
-            showToast(`تم إنشاء اللعبة! رمز اللعبة الخاص بك هو: ${data.gameId}`, true);
+            //  رسالة نجاح مع زر نسخ
+            showToast(`Game created! Your Game Code is: ${data.gameId}`, true);
 
-            // مسح الرمز السري (للأمان)
+
+            // Clear the secret code input for security
             secretCodeInput.value = '';
 
         } catch (error) {
             console.error('Error creating game:', error);
-            showToast('فشل إنشاء اللعبة. الرجاء المحاولة مرة أخرى.');
+            showToast('Failed to create game. Please try again.');
         }
     });
 
     // 2. الانضمام إلى لعبة
     joinGameBtn.addEventListener('click', async () => {
-        const gameId = gameIdInput.value.trim(); // رمز اللعبة
-        const username = usernameInput.value.trim(); // اسم المستخدم
+        const gameId = gameIdInput.value.trim();
+        const username = usernameInput.value.trim();
 
         if (!gameId || !username) {
-            showToast('الرجاء إدخال رمز اللعبة واسمك');
+            showToast('Please enter both Game ID and your name');
             return;
         }
 
         try {
-            // إرسال طلب للانضمام إلى لعبة (API)
             const response = await fetch(`/api/games/${gameId}/join`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username }), // إرسال اسم المستخدم
+                body: JSON.stringify({ username }),
             });
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error || 'فشل الانضمام إلى اللعبة');
+                throw new Error(error.error || 'Failed to join game');
             }
 
-            const data = await response.json(); // استقبال بيانات اللعبة
+            const data = await response.json();
 
-            currentGameId = data.game.id; // تخزين رمز اللعبة
-            currentPredictorId = data.predictorId; // تخزين معرّف المستخدم
+            currentGameId = data.game.id;
+            currentPredictorId = data.predictorId;
 
-            joinScreen.style.display = 'none'; // إخفاء شاشة الانضمام
-            gameScreen.style.display = 'block'; // إظهار شاشة اللعبة
+            joinScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
 
-            userInfoElement.style.display = 'flex'; // إظهار معلومات المستخدم
-            usernameDisplay.textContent = username; // عرض اسم المستخدم
-            userAvatar.textContent = username.charAt(0).toUpperCase(); // عرض الحرف الأول من اسم المستخدم
+            userInfoElement.style.display = 'flex';
+            usernameDisplay.textContent = username;
+            userAvatar.textContent = username.charAt(0).toUpperCase();
 
-            gameQuestionDisplay.textContent = data.game.question; // عرض سؤال اللعبة
-            gameCodeDisplay.textContent = data.game.id; // عرض رمز اللعبة
+            gameQuestionDisplay.textContent = data.game.question;
 
-            predictionForm.style.display = 'block'; // إظهار نموذج إرسال التوقع
-            waitingMessage.style.display = 'block'; // إظهار رسالة "في انتظار اللاعبين"
-            statusMessage.style.display = 'none'; // إخفاء رسالة التأكيد
-            predictionsList.style.display = 'none'; // إخفاء قائمة التوقعات
+            // هنا التغييرات:
+            gameCodeDisplay.textContent = data.game.id;
 
-            socket.emit('join_game', currentGameId); // إرسال حدث "join_game" للسيرفر (عبر Socket.IO)
+            // أضفنا هذا السطر:
+            predictionForm.style.display = 'block';
+            waitingMessage.style.display = 'block';
+            statusMessage.style.display = 'none';
+            predictionsList.style.display = 'none';
+
+            socket.emit('join_game', currentGameId);
 
         } catch (error) {
             console.error('Error joining game:', error);
-            showToast(error.message || 'فشل الانضمام إلى اللعبة. الرجاء المحاولة مرة أخرى.');
+            showToast(error.message || 'Failed to join game. Please try again.');
         }
     });
+
+      // دالة لنسخ الـ Game ID
 
     // لصق التوقع
     pastePredictionBtn.addEventListener('click', async () => {
         try {
-            const text = await navigator.clipboard.readText(); // قراءة النص من الحافظة
-            predictionInput.value = text; // تعيين النص في حقل إدخال التوقع
+            const text = await navigator.clipboard.readText();
+            predictionInput.value = text;
         } catch (err) {
             console.error('Failed to read clipboard:', err);
-            showToast('فشل اللصق. الرجاء التأكد من نسخ نص إلى الحافظة.');
+            showToast('Failed to paste. Please make sure you have copied text to your clipboard.');
         }
     });
 
     // مسح التوقع
     clearPredictionBtn.addEventListener('click', () => {
-        predictionInput.value = ''; // مسح حقل إدخال التوقع
+        predictionInput.value = '';
     });
 
     // 3. إرسال التوقع
     submitPredictionBtn.addEventListener('click', async () => {
-        const prediction = predictionInput.value.trim(); // التوقع (بدون مسافات فارغة في البداية والنهاية)
+        const prediction = predictionInput.value.trim();
 
         if (!prediction) {
-            showToast("الرجاء لصق توقعك قبل الإرسال.");
+            showToast("Please paste your prediction before submitting.");
             return;
         }
 
         if (hasSubmitted) {
-            showToast('لقد أرسلت توقعًا بالفعل');
+            showToast('You have already submitted a prediction');
             return;
         }
 
         try {
-            // إرسال طلب لإرسال التوقع (API)
             const response = await fetch(`/api/games/${currentGameId}/predict`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ predictorId: currentPredictorId, prediction }), // إرسال معرّف المستخدم والتوقع
+                body: JSON.stringify({ predictorId: currentPredictorId, prediction }),
             });
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error || 'فشل إرسال التوقع');
+                throw new Error(error.error || 'Failed to submit prediction');
             }
 
-            const data = await response.json(); // استقبال بيانات (ما نحتاجها هنا)
+            const data = await response.json();
 
-            predictionForm.style.display = 'none'; // إخفاء نموذج إرسال التوقع
-            statusMessage.style.display = 'block'; // إظهار رسالة التأكيد
-            hasSubmitted = true; // تعيين أن المستخدم أرسل توقع
+            predictionForm.style.display = 'none';
+            statusMessage.style.display = 'block';
+            hasSubmitted = true;
 
         } catch (error) {
             console.error('Error submitting prediction:', error);
-            showToast(error.message || 'فشل إرسال التوقع. الرجاء المحاولة مرة أخرى.');
+            showToast(error.message || 'Failed to submit prediction. Please try again.');
         }
     });
 
-    // أحداث Socket.IO
+    // Socket.IO Event Handlers
 
-    socket.on('predictor_update', (data) => { // لما لاعب جديد ينضم أو يخرج
+    socket.on('predictor_update', (data) => {
         if (playerCountDisplay) {
-            playerCountDisplay.textContent = `اللاعبون: ${data.count}/${data.total}`; // تحديث عدد اللاعبين
-            // إذا اكتمل عدد اللاعبين، إخفاء رسالة الانتظار
+            playerCountDisplay.textContent = `Players: ${data.count}/${data.total}`;
+              // إذا وصل عدد اللاعبين للحد الأقصى، نخفي رسالة الانتظار
             if (data.count === data.total) {
                 waitingMessage.style.display = 'none';
             }
@@ -249,27 +252,27 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('prediction_update', (data) => {
         if (predictionCount) {
             predictionCount.style.display = 'block';
-            predictionCount.textContent = `التوقعات: ${data.count}/${data.total}`;
+            predictionCount.textContent = `Predictions: ${data.count}/${data.total}`;
         }
     });
 
     // عرض كل التوقعات
     socket.on('all_predictions_revealed', (data) => {
-        statusMessage.style.display = 'none'; // إخفاء رسالة التأكيد
-        predictionCount.style.display = 'none'; // إخفاء عدد التوقعات
-        predictionsContainer.innerHTML = ''; // مسح أي توقعات سابقة
+        statusMessage.style.display = 'none';
+        predictionCount.style.display = 'none';
+        predictionsContainer.innerHTML = '';
 
         data.predictions.forEach((item) => {
             const { predictor, prediction } = item;
-            const isCurrentUser = predictor.id === currentPredictorId; // هل هذا التوقع من المستخدم الحالي؟
+            const isCurrentUser = predictor.id === currentPredictorId;
 
-            const predictionCard = document.createElement('div'); // إنشاء عنصر للتوقع
+            const predictionCard = document.createElement('div');
             predictionCard.className = 'prediction-card';
 
-            const submittedAt = new Date(prediction.submittedAt); // وقت إرسال التوقع
-            const timeString = submittedAt.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }); // تنسيق الوقت
+            const submittedAt = new Date(prediction.submittedAt);
+            const timeString = submittedAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
-            const formattedPrediction = prediction.content.replace(/\n/g, '<br>'); // استبدال فواصل الأسطر بـ <br>
+            const formattedPrediction = prediction.content.replace(/\n/g, '<br>');
 
             predictionCard.innerHTML = `
         <div class="prediction-header">
@@ -278,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
               ${predictor.username.charAt(0).toUpperCase()}
             </div>
             <div class="predictor-name">
-              ${predictor.username} ${isCurrentUser ? '(أنت)' : ''}
+              ${predictor.username} ${isCurrentUser ? '(You)' : ''}
             </div>
           </div>
           <div class="timestamp">${timeString}</div>
@@ -286,9 +289,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="prediction-content">${formattedPrediction}</div>
       `;
 
-            predictionsContainer.appendChild(predictionCard); // إضافة التوقع إلى قائمة التوقعات
+            predictionsContainer.appendChild(predictionCard);
         });
 
-        predictionsList.style.display = 'block'; // إظهار قائمة التوقعات
+        predictionsList.style.display = 'block';
     });
 });

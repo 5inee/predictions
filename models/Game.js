@@ -13,17 +13,16 @@ const gameSchema = new mongoose.Schema({
             avatarColor: { type: String },
             joinedAt: { type: Date, default: Date.now }
         }, { _id: false }),
-        default: {} // هذا السطر هو التغيير
+        default: {} // Make predictors a Map by default
     },
     predictions: {
         type: Map,
         of: new mongoose.Schema({
             content: { type: String, required: true },
             submittedAt: { type: Date, default: Date.now }
-        }, { _id: false }),
-        default: {} // Make predictions a Map by default
+        }, { _id: false })
     },
-    revealedToAll: { type: Boolean, default: false },
+    revealedToAll: { type: Boolean, default: false }, // إضافة revealedToAll إلى السكيما
 
 }, { timestamps: true });
 
