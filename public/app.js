@@ -165,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // هنا التغييرات:
             gameCodeDisplay.textContent = data.game.id;
-            gameCodeDisplay.addEventListener('click', copyGameId); // إضافة مستمع الحدث
 
             // أضفنا هذا السطر:
             predictionForm.style.display = 'block';
@@ -182,16 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
       // دالة لنسخ الـ Game ID
-    function copyGameId() {
-        navigator.clipboard.writeText(currentGameId)
-            .then(() => {
-                showToast("Game ID copied!", true);
-            })
-            .catch(err => {
-                console.error('Failed to copy Game ID:', err);
-                showToast("Failed to copy Game ID.");
-            });
-    }
 
     // لصق التوقع
     pastePredictionBtn.addEventListener('click', async () => {
