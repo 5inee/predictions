@@ -3,54 +3,55 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const mongoose = require('mongoose');
-const { v4: uuidv4 } = require('uuid'); // استخدام uuid
-const Game = require('./models/Game'); // تأكد أن هذا المسار صحيح
+const { v4: uuidv4 } = require('uuid');
+const Game = require('./models/Game'); // استيراد الموديل
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// Serve static files from the 'public' directory
+// Serve static files
 app.use(express.static('public'));
-app.use(express.json()); // مهم عشان نقدر نستقبل بيانات JSON في الطلبات
+app.use(express.json()); // عشان نقدر نقرأ بيانات JSON من الطلبات
 
-// MongoDB connection (replace with your actual connection string)
+// MongoDB connection
 const mongoUri = process.env.MONGO_URI;
-
 mongoose.connect(mongoUri)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB Connection Error:', err));
+    .then(() => console.log('✅ Connected to MongoDB'))
+    .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
-// Function to generate a short game ID (ممكن تستخدمها أو لا، حسب تصميم اللعبة)
+// دالة لتوليد ID قصير (ممكن تستخدمها أو uuid)
 function generateShortId() {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; // أحرف وأرقام
-  let shortId = '';
-  for (let i = 0; i < 6; i++) { // طول الـ ID هو 6 خانات
-    shortId += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return shortId;
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
 }
 
-// Create a new game
+// 1.  إنشاء لعبة جديدة (Create a new game)
 app.post('/api/games', async (req, res) => {
-    const gameId = generateShortId(); // أو أي طريقة ثانية لتوليد ID
-    const newGame = new Game({
-        id: gameId,
-        question: req.body.question, // السؤال اللي المستخدم دخله
-        maxPredictors: 5, // العدد الأقصى للاعبين (ممكن تخليه متغير)
-    });
     try {
+        const gameId = generateShortId(); // أو استخدم uuidv4()
+        const newGame = new Game({
+            id: gameId,
+            question: req.body.question, // السؤال من المستخدم
+            maxPredictors: 5, // ممكن تخليه متغير
+        });
         await newGame.save();
-        res.json({ gameId });
+        res.json({ gameId }); // نرجع ID اللعبة
     } catch (error) {
-        res.status(500).json({ error: 'Error creating game' });
+        console.error("Error creating game:", error); // إضافة console.error
+        res.status(500).json({ error: 'Failed to create game' });
     }
 });
 
-// Join a game
+// 2. الانضمام إلى لعبة (Join a game)
 app.post('/api/games/:gameId/join', async (req, res) => {
     const { gameId } = req.params;
     const { username } = req.body;
+
     try {
         const game = await Game.findOne({ id: gameId });
         if (!game) {
@@ -60,103 +61,106 @@ app.post('/api/games/:gameId/join', async (req, res) => {
             return res.status(400).json({ error: 'Game is full' });
         }
 
-        // Get current predictor count for color selection
-        const predictorCount = Object.keys(game.predictors).length;
-
-        const predictorId = uuidv4(); // توليد ID فريد للاعب
+        const predictorId = uuidv4();
+        const predictorCount = Object.keys(game.predictors).length; // عدد اللاعبين قبل إضافة اللاعب الجديد
         game.predictors.set(predictorId, {
             id: predictorId,
             username,
-            avatarColor: getAvatarColor(predictorCount),
+            avatarColor: getAvatarColor(predictorCount), // دالة بسيطة لتحديد لون
             joinedAt: new Date(),
         });
 
         await game.save();
-        // إرسال تحديث لكل اللاعبين المتصلين باللعبة
+
+        // إرسال تحديث لكل اللاعبين في الغرفة
         io.to(gameId).emit('predictor_update', {
-            count: Object.keys(game.predictors).length,
+            count: Object.keys(game.predictors).length, // عدد اللاعبين بعد الإضافة
             total: game.maxPredictors,
         });
+
         res.json({
             predictorId,
             game: {
                 id: game.id,
                 question: game.question,
-                predictorCount: Object.keys(game.predictors).length, // عدد اللاعبين الحاليين
-                maxPredictors: game.maxPredictors, // العدد الأقصى للاعبين
+                predictorCount: Object.keys(game.predictors).length,
+                maxPredictors: game.maxPredictors,
             },
         });
     } catch (error) {
-        res.status(500).json({ error: 'Error joining game' });
+        console.error("Error joining game:", error); // إضافة console.error
+        res.status(500).json({ error: 'Failed to join game' });
     }
 });
-// Submit a prediction
+
+// 3. إرسال توقع (Submit a prediction)
 app.post('/api/games/:gameId/predict', async (req, res) => {
     const { gameId } = req.params;
     const { predictorId, prediction } = req.body;
+
     try {
         const game = await Game.findOne({ id: gameId });
         if (!game) {
             return res.status(404).json({ error: 'Game not found' });
         }
-        // التأكد من أن اللاعب موجود في قائمة اللاعبين في اللعبة
         if (!game.predictors.has(predictorId)) {
-            return res.status(403).json({ error: 'Not a valid predictor for this game' });
+            return res.status(403).json({ error: 'Not a valid predictor' });
         }
-        // التأكد من أن اللعبة ما زالت تستقبل توقعات (ما وصل عدد التوقعات للحد الأقصى)
         if (game.predictions.size >= game.maxPredictors) {
-             return res.status(400).json({ error: 'Maximum predictions reached, game is closed' });
+            return res.status(400).json({ error: 'Predictions are full' });
         }
 
-        // إضافة التوقع إلى ماب التوقعات في اللعبة
         game.predictions.set(predictorId, { content: prediction, submittedAt: new Date() });
         await game.save();
 
-        const predictionsCount = game.predictions.size; // عدد التوقعات الحالي
-        const allPredictionsSubmitted = predictionsCount === game.maxPredictors; // هل اكتمل عدد التوقعات؟
+        const predictionsCount = game.predictions.size;
+        const allPredictionsSubmitted = predictionsCount === game.maxPredictors;
+
         // إرسال تحديث لجميع اللاعبين في الغرفة بعدد التوقعات
         io.to(gameId).emit('prediction_update', { count: predictionsCount, total: game.maxPredictors });
 
+
         // إذا اكتمل عدد التوقعات، أرسل كل التوقعات
         if (allPredictionsSubmitted && !game.revealedToAll) {
-          game.revealedToAll = true;
-          await game.save();
+            game.revealedToAll = true;
+            await game.save();
 
-          const predictionsArray = [];
+            const predictionsArray = [];
 
-          // Iterate through each prediction
-          for (const [pid, predictionData] of game.predictions.entries()) {
-            // Get the predictor information
-            const predictor = game.predictors.get(pid);
+            // Iterate through each prediction
+            for (const [pid, predictionData] of game.predictions.entries()) {
+                // Get the predictor information
+                const predictor = game.predictors.get(pid);
 
-            // Add to the array with the right structure
-            predictionsArray.push({
-              predictor,
-              prediction: predictionData
-            });
-          }
+                // Add to the array with the right structure
+                predictionsArray.push({
+                    predictor,
+                    prediction: predictionData
+                });
+            }
 
-          io.to(gameId).emit('all_predictions_revealed', { predictions: predictionsArray });
+            io.to(gameId).emit('all_predictions_revealed', { predictions: predictionsArray });
         }
+
         res.json({ success: true, predictionsCount, allPredictionsSubmitted });
     } catch (error) {
-        res.status(500).json({ error: 'Error submitting prediction' });
+        console.error("Error submitting prediction:", error); // إضافة console.error
+        res.status(500).json({ error: 'Failed to submit prediction' });
     }
 });
 
-// Socket.IO connection handling
+// Socket.IO
 io.on('connection', (socket) => {
     console.log('a user connected');
 
-    // لما اللاعب ينضم للعبة
     socket.on('join_game', (gameId) => {
-        socket.join(gameId); // إضافة اللاعب إلى غرفة (Room) خاصة باللعبة
-        console.log(`User joined game room: ${gameId}`);
+        socket.join(gameId); // ضم اللاعب إلى غرفة اللعبة
+        console.log(`User joined game: ${gameId}`);
     });
 
     socket.on('disconnect', () => {
         console.log('user disconnected');
-        // ممكن هنا نضيف منطق (Logic) للتعامل مع مغادرة اللاعب للعبة (إزالته من قائمة اللاعبين، إلخ)
+        // ممكن نضيف هنا كود للتعامل مع مغادرة اللاعب
     });
 });
 
@@ -165,8 +169,8 @@ server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-// Function to get different avatar colors ( بسيطة، ممكن تعدلها)
+// دالة بسيطة لاختيار لون للصورة الرمزية
 function getAvatarColor(index) {
-    const colors = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8']; // ألوان مختلفة
-    return colors[index % colors.length]; // نرجع لون بناءً على رقم اللاعب
+    const colors = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8'];
+    return colors[index % colors.length];
 }
