@@ -368,7 +368,7 @@ textarea[readonly] {
   border: 1px solid #ced4da;
 }
 
- .toastify {
-     /*  تنسيقات إضافية هنا */
-     font-size: 16px;
- }
+.toastify {
+   /*  تنسيقات إضافية هنا */
+   font-size: 16px;
+}

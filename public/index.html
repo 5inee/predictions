@@ -1,11 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
+<html lang="ar" dir="rtl"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PredictBattle - Real-time Prediction Game</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>معركة التوقعات - لعبة توقعات في الوقت الفعلي</title> <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 
@@ -13,88 +10,79 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <div class="logo">PredictBattle</div>
-                <div id="userInfo" class="user-info" style="display: none;">
+                <div class="logo">معركة التوقعات</div> <div id="userInfo" class="user-info" style="display: none;">
                     <span id="usernameDisplay"></span>
-                    <div id="userAvatar" class="avatar">P</div>
-                </div>
+                    <div id="userAvatar" class="avatar"></div> </div>
             </div>
         </div>
     </header>
 
     <div id="joinScreen" class="container">
         <div class="game-card">
-            <h1 class="game-title">Join a Prediction Game</h1>
+            <h1 class="game-title">انضم إلى لعبة توقعات</h1>
 
             <div class="form-group">
-                <label for="gameId">Game ID:</label>
-                <input type="text" id="gameId" placeholder="Enter 6-character game ID">
+                <label for="gameId">رمز اللعبة:</label>
+                <input type="text" id="gameId" placeholder="أدخل رمز اللعبة المكون من 6 أحرف">
             </div>
 
             <div class="form-group">
-                <label for="username">Your Name:</label>
-                <input type="text" id="username" placeholder="Enter your name">
+                <label for="username">اسمك:</label>
+                <input type="text" id="username" placeholder="أدخل اسمك">
             </div>
 
-            <button id="joinGameBtn" class="btn btn-primary">Join Game</button>
-            <div class="separator">OR</div>
-            <button id="createGameBtn" class="btn btn-secondary">Create New Game</button>
+            <button id="joinGameBtn" class="btn btn-primary">انضم إلى اللعبة</button>
+            <div class="separator">أو</div>
+            <button id="createGameBtn" class="btn btn-secondary">أنشئ لعبة جديدة</button>
         </div>
     </div>
 
     <div id="createGameScreen" class="container" style="display: none;">
         <div class="game-card">
-            <h1 class="game-title">Create a New Game</h1>
+            <h1 class="game-title">أنشئ لعبة جديدة</h1>
 
             <div class="form-group">
-                <label for="gameQuestion">Question for Predictions:</label>
-                <textarea id="gameQuestion" placeholder="Enter your question here.."></textarea>
+                <label for="gameQuestion">سؤال التوقعات:</label>
+                <textarea id="gameQuestion" placeholder="أدخل سؤالك هنا..."></textarea>
             </div>
 
             <div class="form-group">
-                <label for="secretCode">Secret Code:</label>
-                <input type="password" id="secretCode" placeholder="Enter the secret code">
-                <div id="secretCodeError" class="error-message" style="display: none;">Invalid secret code</div>
+                <label for="secretCode">الرمز السري:</label>
+                <input type="password" id="secretCode" placeholder="أدخل الرمز السري">
+                <div id="secretCodeError" class="error-message" style="display: none;">رمز سري خاطئ</div>
             </div>
 
-            <button id="createNewGameBtn" class="btn btn-primary">Create Game</button>
-            <button id="backToJoinBtn" class="btn btn-link">Back</button>
+            <button id="createNewGameBtn" class="btn btn-primary">أنشئ اللعبة</button>
+            <button id="backToJoinBtn" class="btn btn-link">رجوع</button>
         </div>
     </div>
 
     <div id="gameScreen" class="container" style="display: none;">
         <div class="game-card">
-            <h1 class="game-title"></h1>
-
-            <div id="gameInfo" class="game-info">
-                <div id="gameCode" class="game-code">Game ID: <span id="gameCodeDisplay" style="cursor: pointer;"></span></div>
-                <div class="player-count"></div>
-                <div id="waitingMessage" class="waiting-message">Waiting for players to join...</div>
+            <h1 class="game-title"></h1> <div id="gameInfo" class="game-info">
+                <div id="gameCode" class="game-code">رمز اللعبة: <span id="gameCodeDisplay" style="cursor: pointer;"></span></div>
+                <div class="player-count"></div> <div id="waitingMessage" class="waiting-message">في انتظار انضمام اللاعبين...</div>
             </div>
 
             <div id="predictionForm" class="prediction-form">
                 <div class="form-group">
-                    <label for="prediction">Your Prediction:</label>
-                    <textarea id="prediction" placeholder="Enter your prediction here..." readonly></textarea>
+                    <label for="prediction">توقعك:</label>
+                    <textarea id="prediction" placeholder="أدخل توقعك هنا..." readonly></textarea>
                     <div class="button-group">
-                        <button id="pastePredictionBtn" type="button" class="btn btn-secondary">Paste</button>
-                        <button id="clearPredictionBtn" type="button" class="btn btn-secondary">Clear</button>
+                        <button id="pastePredictionBtn" type="button" class="btn btn-secondary">لصق</button>
+                        <button id="clearPredictionBtn" type="button" class="btn btn-secondary">مسح</button>
                       </div>
                 </div>
-                <button id="submitPredictionBtn" type="button" class="btn btn-primary">Submit Prediction</button>
+                <button id="submitPredictionBtn" type="button" class="btn btn-primary">أرسل التوقع</button>
             </div>
 
             <div id="statusMessage" class="status-message">
-                Your prediction has been sent. The rest of the competitors' predictions will be revealed when all
-                predictions are submitted.
+                تم إرسال توقعك. سيتم الكشف عن توقعات المنافسين الآخرين عند إرسال جميع التوقعات.
             </div>
 
-            <div id="predictionCount" class="prediction-count"></div>
-
-            <div id="predictionsList" class="predictions-list">
-                <h3>All Predictions</h3>
-                <div id="predictionsContainer"></div>
-            </div>
+            <div id="predictionCount" class="prediction-count"></div> <div id="predictionsList" class="predictions-list">
+                <h3>جميع التوقعات</h3>
+                <div id="predictionsContainer"></div> </div>
         </div>
     </div>
 
