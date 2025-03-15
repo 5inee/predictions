@@ -111,17 +111,17 @@ document.addEventListener('DOMContentLoaded', () => {
     joinGameBtn.addEventListener('click', async () => {
         const gameId = gameIdInput.value.trim();
         const username = usernameInput.value.trim();
-
+    
         if (!gameId || !username) {
             alert('Please enter both Game ID and your name');
             return;
         }
-
+    
         try {
-            const response = await fetch(`/api/games/${gameId}/join`, {
+            const response = await fetch(`/api/games/${gameId}/join`, { // عدل هذا السطر
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username }), // نرسل اسم المستخدم
+                body: JSON.stringify({ username }),
             });
 
             if (!response.ok) {
