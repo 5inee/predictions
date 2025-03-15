@@ -39,15 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Secret code constant
     const CORRECT_SECRET_CODE = '021';
 
-    // دوال لإظهار وإخفاء شاشة التحميل
-    function showLoading() {
-        document.getElementById('loadingOverlay').style.display = 'flex';
-    }
-
-    function hideLoading() {
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }
-
     // دالة لعرض الإشعارات
     function showToast(message, isSuccess = false) {
         const backgroundColor = isSuccess
@@ -110,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        showLoading(); // إظهار شاشة التحميل
         try {
             const response = await fetch('/api/games', {
                 method: 'POST',
@@ -124,8 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
             createGameScreen.style.display = 'none';
             joinScreen.style.display = 'block';
 
-            //  رسالة نجاح
+            //  رسالة نجاح مع زر نسخ
             showToast(`Game created! Your Game Code is: ${data.gameId}`, true);
+
 
             // Clear the secret code input for security
             secretCodeInput.value = '';
@@ -133,8 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error creating game:', error);
             showToast('Failed to create game. Please try again.');
-        } finally {
-            hideLoading(); // إخفاء شاشة التحميل
         }
     });
 
@@ -148,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        showLoading(); // إظهار شاشة التحميل
         try {
             const response = await fetch(`/api/games/${gameId}/join`, {
                 method: 'POST',
@@ -174,8 +162,11 @@ document.addEventListener('DOMContentLoaded', () => {
             userAvatar.textContent = username.charAt(0).toUpperCase();
 
             gameQuestionDisplay.textContent = data.game.question;
+
+            // هنا التغييرات:
             gameCodeDisplay.textContent = data.game.id;
 
+            // أضفنا هذا السطر:
             predictionForm.style.display = 'block';
             waitingMessage.style.display = 'block';
             statusMessage.style.display = 'none';
@@ -186,10 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error joining game:', error);
             showToast(error.message || 'Failed to join game. Please try again.');
-        } finally {
-            hideLoading(); // إخفاء شاشة التحميل
         }
     });
+
+      // دالة لنسخ الـ Game ID
 
     // لصق التوقع
     pastePredictionBtn.addEventListener('click', async () => {
@@ -221,7 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        showLoading(); // إظهار شاشة التحميل
         try {
             const response = await fetch(`/api/games/${currentGameId}/predict`, {
                 method: 'POST',
@@ -243,8 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error submitting prediction:', error);
             showToast(error.message || 'Failed to submit prediction. Please try again.');
-        } finally {
-            hideLoading(); // إخفاء شاشة التحميل
         }
     });
 
