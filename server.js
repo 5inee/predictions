@@ -64,7 +64,7 @@ app.post('/api/games/:gameId/join', async (req, res) => {
         }
 
         const predictorId = uuidv4();
-        const predictorCount = game.predictors.size;
+        const predictorCount = game.predictors.size; //  استخدام .size
 
         game.predictors.set(predictorId, {
             id: predictorId,
@@ -77,7 +77,7 @@ app.post('/api/games/:gameId/join', async (req, res) => {
 
         // إرسال تحديث لكل اللاعبين في الغرفة
         io.to(gameId).emit('predictor_update', {
-            count: game.predictors.size,
+            count: game.predictors.size, //  .size
             total: game.maxPredictors,
         });
 
@@ -86,7 +86,7 @@ app.post('/api/games/:gameId/join', async (req, res) => {
             game: {
                 id: game.id,
                 question: game.question,
-                predictorCount: game.predictors.size,
+                predictorCount: game.predictors.size, //  .size
                 maxPredictors: game.maxPredictors,
             },
         });
@@ -109,8 +109,7 @@ app.post('/api/games/:gameId/predict', async (req, res) => {
         if (!game.predictors.has(predictorId)) {
             return res.status(403).json({ error: 'Not a valid predictor' });
         }
-        // هنا التعديل: نستخدم ?. و || 0
-        if ((game.predictions?.size || 0) >= game.maxPredictors) {
+        if (game.predictions.size >= game.maxPredictors) {
             return res.status(400).json({ error: 'Predictions are full' });
         }
 
