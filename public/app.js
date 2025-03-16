@@ -1,30 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize socket connection
     const socket = io();
 
-    // DOM Elements - Screens
+    // DOM Elements
     const joinScreen = document.getElementById('joinScreen');
     const createGameScreen = document.getElementById('createGameScreen');
     const gameScreen = document.getElementById('gameScreen');
-    
-    // DOM Elements - Join Screen
     const gameIdInput = document.getElementById('gameId');
     const usernameInput = document.getElementById('username');
     const joinGameBtn = document.getElementById('joinGameBtn');
     const createGameBtn = document.getElementById('createGameBtn');
-    
-    // DOM Elements - Create Game Screen
     const gameQuestionInput = document.getElementById('gameQuestion');
     const secretCodeInput = document.getElementById('secretCode');
     const secretCodeError = document.getElementById('secretCodeError');
     const createNewGameBtn = document.getElementById('createNewGameBtn');
     const backToJoinBtn = document.getElementById('backToJoinBtn');
-    
-    // DOM Elements - Game Screen
     const userInfoElement = document.getElementById('userInfo');
     const usernameDisplay = document.getElementById('usernameDisplay');
     const userAvatar = document.getElementById('userAvatar');
-    const gameQuestionDisplay = document.querySelector('.game-title');
+    const gameQuestionDisplay = document.querySelector('#gameScreen .game-title');
     const gameCodeDisplay = document.getElementById('gameCodeDisplay');
     const copyButton = document.querySelector('.copy-button');
     const waitingMessage = document.getElementById('waitingMessage');
@@ -36,9 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearPredictionBtn = document.getElementById('clearPredictionBtn');
     const statusMessage = document.getElementById('statusMessage');
     const predictionCount = document.getElementById('predictionCount');
-    const predictionCountText = document.querySelector('.counter-text');
     const predictionsList = document.getElementById('predictionsList');
     const predictionsContainer = document.getElementById('predictionsContainer');
+    const counterText = document.querySelector('.counter-text');
 
     // App State
     let currentGameId = null;
@@ -49,11 +42,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Secret code constant
     const CORRECT_SECRET_CODE = '021';
 
+    // Show initial screen
+    joinScreen.style.display = 'block';
+
     // Helper Functions
     function showToast(message, isSuccess = false) {
         const backgroundColor = isSuccess
-            ? "linear-gradient(to right, #06d6a0, #05b889)" // Success green
-            : "linear-gradient(to right, #ef476f, #d63f61)"; // Error red
+            ? "linear-gradient(to right, #06d6a0, #06b88a)"
+            : "linear-gradient(to right, #ef476f, #d93d63)";
 
         Toastify({
             text: message,
@@ -66,69 +62,84 @@ document.addEventListener('DOMContentLoaded', () => {
             style: {
                 background: backgroundColor,
                 borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                padding: "12px 20px",
             },
-            onClick: function () { }
         }).showToast();
     }
 
-    function showScreen(screen) {
+    function showScreen(screenId) {
         // Hide all screens
         joinScreen.style.display = 'none';
         createGameScreen.style.display = 'none';
         gameScreen.style.display = 'none';
-        
+
         // Show the requested screen
-        screen.style.display = 'block';
-    }
+        document.getElementById(screenId).style.display = 'block';
 
-    function generateAvatarColor(username) {
-        // Simple hash function to generate consistent colors
-        let hash = 0;
-        for (let i = 0; i < username.length; i++) {
-            hash = username.charCodeAt(i) + ((hash << 5) - hash);
+        // Additional setup for specific screens
+        if (screenId === 'gameScreen') {
+            userInfoElement.style.display = 'flex';
         }
-        
-        // Generate HSL color with fixed saturation and lightness
-        const hue = hash % 360;
-        return `hsl(${hue}, 70%, 60%)`;
     }
 
-    // Event Listeners - Navigation
+    function generateRandomColor() {
+        const colors = [
+            '#5e60ce', '#6a67ce', '#7678ed', '#3d4fd1', '#5151d4', 
+            '#64dfdf', '#56c2c2', '#72efef', '#118ab2', '#06d6a0'
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function formatTime(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString(undefined, { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+        });
+    }
+
+    function resetGameState() {
+        predictionForm.style.display = 'block';
+        waitingMessage.style.display = 'block';
+        statusMessage.style.display = 'none';
+        predictionCount.style.display = 'none';
+        predictionsList.style.display = 'none';
+        predictionInput.value = '';
+        predictionInput.removeAttribute('readonly');
+        hasSubmitted = false;
+        predictionsContainer.innerHTML = '';
+    }
+
+    // Event Listeners
     createGameBtn.addEventListener('click', () => {
-        showScreen(createGameScreen);
+        showScreen('createGameScreen');
         secretCodeError.style.display = 'none';
-        secretCodeInput.classList.remove('shake');
-        gameQuestionInput.value = '';
-        secretCodeInput.value = '';
     });
 
     backToJoinBtn.addEventListener('click', () => {
-        showScreen(joinScreen);
+        showScreen('joinScreen');
     });
 
-    // Event Listeners - Create Game
     createNewGameBtn.addEventListener('click', async () => {
         const question = gameQuestionInput.value.trim();
         const secretCode = secretCodeInput.value.trim();
 
         if (!question) {
-            showToast('Please enter a question for the game.');
+            showToast('Please enter a challenge question.');
             gameQuestionInput.focus();
             return;
         }
 
-        // Validate the secret code
         if (secretCode !== CORRECT_SECRET_CODE) {
-            showToast('Invalid secret code');
+            showToast('Invalid secret code.');
             secretCodeError.style.display = 'block';
             secretCodeInput.classList.add('shake');
-            secretCodeInput.focus();
-
-            // Remove the shake class after the animation completes
+            
             setTimeout(() => {
                 secretCodeInput.classList.remove('shake');
             }, 500);
-
             return;
         }
 
@@ -140,39 +151,42 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create game');
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to create game');
             }
 
             const data = await response.json();
             
             // Auto-fill the game ID in the join screen
             gameIdInput.value = data.gameId;
+            showScreen('joinScreen');
+            gameIdInput.classList.add('highlight');
             
-            showScreen(joinScreen);
-            showToast(`Game created! Your Game Code is: ${data.gameId}`, true);
-
-            // Clear the secret code input for security
+            setTimeout(() => {
+                gameIdInput.classList.remove('highlight');
+            }, 1500);
+            
+            showToast(`Game created! Game Code: ${data.gameId}`, true);
             secretCodeInput.value = '';
-
+            gameQuestionInput.value = '';
         } catch (error) {
             console.error('Error creating game:', error);
             showToast('Failed to create game. Please try again.');
         }
     });
 
-    // Event Listeners - Join Game
     joinGameBtn.addEventListener('click', async () => {
-        const gameId = gameIdInput.value.trim();
+        const gameId = gameIdInput.value.trim().toUpperCase();
         const username = usernameInput.value.trim();
 
         if (!gameId) {
-            showToast('Please enter a Game Code');
+            showToast('Please enter a game code.');
             gameIdInput.focus();
             return;
         }
 
         if (!username) {
-            showToast('Please enter your name');
+            showToast('Please enter your name.');
             usernameInput.focus();
             return;
         }
@@ -185,74 +199,67 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to join game');
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to join game');
             }
 
             const data = await response.json();
             
-            // Update app state
             currentGameId = data.game.id;
             currentPredictorId = data.predictorId;
             currentUsername = username;
 
-            // Update UI
-            showScreen(gameScreen);
+            showScreen('gameScreen');
+            resetGameState();
             
-            // Show user info
-            userInfoElement.style.display = 'flex';
+            // Update UI with game info
             usernameDisplay.textContent = username;
             userAvatar.textContent = username.charAt(0).toUpperCase();
-            userAvatar.style.backgroundColor = generateAvatarColor(username);
-            
-            // Update game info
             gameQuestionDisplay.textContent = data.game.question;
             gameCodeDisplay.textContent = data.game.id;
             
-            // Reset UI state
-            predictionForm.style.display = 'block';
-            predictionInput.value = '';
-            predictionInput.removeAttribute('readonly');
-            submitPredictionBtn.disabled = false;
-            waitingMessage.style.display = 'block';
-            statusMessage.style.display = 'none';
-            predictionsList.style.display = 'none';
-            predictionCount.style.display = 'none';
-            hasSubmitted = false;
-
-            // Join the game room
-            socket.emit('join_game', currentGameId);
-
+            // Connect to socket room
+            socket.emit('join_game', {
+                gameId: currentGameId,
+                predictorId: currentPredictorId,
+                username: currentUsername
+            });
+            
+            showToast(`Welcome to the game, ${username}!`, true);
         } catch (error) {
             console.error('Error joining game:', error);
             showToast(error.message || 'Failed to join game. Please try again.');
         }
     });
 
-    // Event Listeners - Game Screen
     copyButton.addEventListener('click', () => {
+        if (!currentGameId) return;
+        
         navigator.clipboard.writeText(currentGameId)
             .then(() => {
-                showToast('Game Code copied to clipboard!', true);
+                showToast('Game code copied to clipboard!', true);
             })
             .catch(err => {
-                console.error('Failed to copy Game Code:', err);
-                showToast('Failed to copy Game Code.');
+                console.error('Failed to copy game code:', err);
+                showToast('Failed to copy game code.');
             });
     });
 
     pastePredictionBtn.addEventListener('click', async () => {
+        if (hasSubmitted) return;
+        
         try {
             const text = await navigator.clipboard.readText();
             predictionInput.value = text;
             predictionInput.focus();
         } catch (err) {
             console.error('Failed to read clipboard:', err);
-            showToast('Failed to paste. Please make sure you have copied text to your clipboard.');
+            showToast('Failed to paste. Please check your clipboard permissions.');
         }
     });
 
     clearPredictionBtn.addEventListener('click', () => {
+        if (hasSubmitted) return;
         predictionInput.value = '';
         predictionInput.focus();
     });
@@ -261,13 +268,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const prediction = predictionInput.value.trim();
 
         if (!prediction) {
-            showToast("Please enter or paste your prediction before submitting.");
+            showToast("Please enter or paste your prediction.");
             predictionInput.focus();
             return;
         }
 
         if (hasSubmitted) {
-            showToast('You have already submitted a prediction');
+            showToast('You have already submitted a prediction.');
             return;
         }
 
@@ -275,34 +282,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`/api/games/${currentGameId}/predict`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ predictorId: currentPredictorId, prediction }),
+                body: JSON.stringify({ 
+                    predictorId: currentPredictorId, 
+                    prediction 
+                }),
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to submit prediction');
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to submit prediction');
             }
 
             const data = await response.json();
             
-            // Update UI
-            predictionInput.setAttribute('readonly', true);
-            submitPredictionBtn.disabled = true;
             hasSubmitted = true;
-
-            // Show appropriate message based on all predictions submitted
-            if (data.allPredictionsSubmitted) {
-                statusMessage.innerHTML = '<i class="fas fa-check-circle"></i><span>Your prediction has been sent. Below you will find all the contestants\' predictions, including your own.</span>';
-            } else {
-                statusMessage.innerHTML = '<i class="fas fa-check-circle"></i><span>Your prediction has been sent. The predictions will be revealed when all players have submitted.</span>';
-            }
-            statusMessage.style.display = 'block';
+            predictionInput.setAttribute('readonly', true);
             
-            // Show prediction count if not all predictions submitted
-            if (!data.allPredictionsSubmitted) {
-                predictionCount.style.display = 'block';
+            // Update UI based on submission status
+            if (data.allPredictionsSubmitted) {
+                statusMessage.innerHTML = '<i class="fas fa-check-circle"></i><span>All predictions submitted! Scroll down to see everyone\'s predictions.</span>';
+            } else {
+                statusMessage.innerHTML = '<i class="fas fa-check-circle"></i><span>Your prediction has been submitted. Waiting for others to finish...</span>';
             }
-
+            
+            predictionForm.style.display = 'none';
+            statusMessage.style.display = 'block';
+            predictionCount.style.display = 'block';
+            
+            showToast('Prediction submitted successfully!', true);
         } catch (error) {
             console.error('Error submitting prediction:', error);
             showToast(error.message || 'Failed to submit prediction. Please try again.');
@@ -310,11 +317,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Socket.IO Event Handlers
+    socket.on('connect', () => {
+        console.log('Connected to server');
+    });
+
+    socket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+        showToast('Connection error. Please refresh the page.');
+    });
+
     socket.on('predictor_update', (data) => {
         if (data.gameId === currentGameId) {
             playerCountDisplay.textContent = `Players: ${data.count}/${data.total}`;
             
-            // If all players have joined, hide the waiting message
             if (data.count === data.total) {
                 waitingMessage.style.display = 'none';
             } else {
@@ -325,81 +340,89 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('prediction_update', (data) => {
         if (data.gameId === currentGameId) {
-            predictionCountText.textContent = `Predictions: ${data.count}/${data.total}`;
+            counterText.textContent = `Predictions: ${data.count}/${data.total}`;
+            predictionCount.style.display = 'block';
             
-            // Only show the prediction count if the user has submitted
-            if (hasSubmitted) {
-                predictionCount.style.display = 'block';
+            if (data.count === data.total) {
+                // All predictions are in, but we'll wait for the reveal event
+                // before showing them
+                statusMessage.innerHTML = '<i class="fas fa-check-circle"></i><span>All predictions submitted! Results will be revealed shortly...</span>';
             }
         }
     });
 
     socket.on('all_predictions_revealed', (data) => {
-        if (data.gameId === currentGameId) {
-            // Update UI
-            statusMessage.style.display = 'none';
-            predictionCount.style.display = 'none';
-            waitingMessage.style.display = 'none';
+        if (data.gameId !== currentGameId) return;
+        
+        // Update UI for results view
+        statusMessage.style.display = 'none';
+        predictionCount.style.display = 'none';
+        waitingMessage.style.display = 'none';
+        predictionsContainer.innerHTML = '';
+        
+        // Generate prediction cards
+        data.predictions.forEach((item) => {
+            const { predictor, prediction } = item;
+            const isCurrentUser = predictor.id === currentPredictorId;
+            const avatarColor = predictor.avatarColor || generateRandomColor();
             
-            // Clear and populate predictions
-            predictionsContainer.innerHTML = '';
+            const predictionCard = document.createElement('div');
+            predictionCard.className = `prediction-card ${isCurrentUser ? 'fade-in' : ''}`;
             
-            data.predictions.forEach((item) => {
-                const { predictor, prediction } = item;
-                const isCurrentUser = predictor.id === currentPredictorId;
-                
-                const predictionCard = document.createElement('div');
-                predictionCard.className = 'prediction-card';
-                
-                if (isCurrentUser) {
-                    predictionCard.classList.add('highlight');
-                }
-                
-                const avatarColor = generateAvatarColor(predictor.username);
-                const submittedAt = new Date(prediction.submittedAt);
-                const timeString = submittedAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-                
-                // Format prediction content for HTML display
-                const formattedPrediction = prediction.content.replace(/\n/g, '<br>');
-                
-                predictionCard.innerHTML = `
-                    <div class="prediction-header">
-                        <div class="predictor-info">
-                            <div class="predictor-avatar" style="background-color: ${avatarColor}">
-                                ${predictor.username.charAt(0).toUpperCase()}
-                            </div>
-                            <div class="predictor-name">
-                                ${predictor.username} ${isCurrentUser ? '(You)' : ''}
-                            </div>
+            const formattedPrediction = prediction.content.replace(/\n/g, '<br>');
+            
+            predictionCard.innerHTML = `
+                <div class="prediction-header">
+                    <div class="predictor-info">
+                        <div class="predictor-avatar" style="background-color: ${avatarColor}">
+                            ${predictor.username.charAt(0).toUpperCase()}
                         </div>
-                        <div class="timestamp">${timeString}</div>
+                        <div class="predictor-name">
+                            ${predictor.username} ${isCurrentUser ? '(You)' : ''}
+                        </div>
                     </div>
-                    <div class="prediction-content">${formattedPrediction}</div>
-                `;
-                
-                predictionsContainer.appendChild(predictionCard);
-            });
+                    <div class="timestamp">${formatTime(prediction.submittedAt)}</div>
+                </div>
+                <div class="prediction-content">${formattedPrediction}</div>
+            `;
             
-            // Show the predictions list with a fade-in effect
-            predictionsList.classList.add('fade-in');
-            predictionsList.style.display = 'block';
+            predictionsContainer.appendChild(predictionCard);
+        });
+        
+        predictionsList.style.display = 'block';
+        
+        // Scroll to predictions
+        predictionsList.scrollIntoView({ behavior: 'smooth' });
+        
+        showToast('All predictions have been revealed!', true);
+    });
+
+    socket.on('game_error', (error) => {
+        showToast(error.message || 'An error occurred in the game');
+    });
+
+    // Handle enter key in input fields
+    gameIdInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            usernameInput.focus();
         }
     });
 
-    // Handle connection and disconnection
-    socket.on('connect', () => {
-        console.log('Connected to server');
-    });
-    
-    socket.on('disconnect', () => {
-        console.log('Disconnected from server');
-    });
-    
-    socket.on('error', (error) => {
-        console.error('Socket error:', error);
-        showToast('Connection error. Please refresh the page.');
+    usernameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            joinGameBtn.click();
+        }
     });
 
-    // Initial setup
-    showScreen(joinScreen);
+    gameQuestionInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            secretCodeInput.focus();
+        }
+    });
+
+    secretCodeInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            createNewGameBtn.click();
+        }
+    });
 });
