@@ -218,12 +218,11 @@ document.addEventListener('DOMContentLoaded', () => {
             gameQuestionDisplay.textContent = data.game.question;
             gameCodeDisplay.textContent = data.game.id;
             
-            // Connect to socket room
-            socket.emit('join_game', {
-                gameId: currentGameId,
-                predictorId: currentPredictorId,
-                username: currentUsername
-            });
+            // Set initial player count
+            playerCountDisplay.textContent = `Players: ${data.game.predictorCount}/${data.game.maxPredictors}`;
+            
+            // Join the socket room after successful API call
+            socket.emit('join_game', currentGameId);
             
             showToast(`Welcome to the game, ${username}!`, true);
         } catch (error) {
@@ -299,15 +298,15 @@ document.addEventListener('DOMContentLoaded', () => {
             predictionInput.setAttribute('readonly', true);
             
             // Update UI based on submission status
-            if (data.allPredictionsSubmitted) {
-                statusMessage.innerHTML = '<i class="fas fa-check-circle"></i><span>All predictions submitted! Scroll down to see everyone\'s predictions.</span>';
-            } else {
-                statusMessage.innerHTML = '<i class="fas fa-check-circle"></i><span>Your prediction has been submitted. Waiting for others to finish...</span>';
-            }
-            
             predictionForm.style.display = 'none';
             statusMessage.style.display = 'block';
             predictionCount.style.display = 'block';
+            
+            if (data.allPredictionsSubmitted) {
+                statusMessage.innerHTML = '<i class="fas fa-check-circle"></i><span>All predictions submitted! Results will be revealed shortly...</span>';
+            } else {
+                statusMessage.innerHTML = '<i class="fas fa-check-circle"></i><span>Your prediction has been submitted. Waiting for others to finish...</span>';
+            }
             
             showToast('Prediction submitted successfully!', true);
         } catch (error) {
@@ -327,37 +326,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     socket.on('predictor_update', (data) => {
-        if (data.gameId === currentGameId) {
-            playerCountDisplay.textContent = `Players: ${data.count}/${data.total}`;
-            
-            if (data.count === data.total) {
-                waitingMessage.style.display = 'none';
-            } else {
-                waitingMessage.style.display = 'block';
-            }
+        console.log('Received predictor_update:', data);
+        playerCountDisplay.textContent = `Players: ${data.count}/${data.total}`;
+        
+        if (data.count === data.total) {
+            waitingMessage.style.display = 'none';
+        } else {
+            waitingMessage.style.display = 'block';
         }
     });
 
     socket.on('prediction_update', (data) => {
-        if (data.gameId === currentGameId) {
-            counterText.textContent = `Predictions: ${data.count}/${data.total}`;
+        console.log('Received prediction_update:', data);
+        if (predictionCount) {
             predictionCount.style.display = 'block';
+            document.querySelector('.counter-text').textContent = `Predictions: ${data.count}/${data.total}`;
             
-            if (data.count === data.total) {
-                // All predictions are in, but we'll wait for the reveal event
-                // before showing them
+            if (data.count === data.total && hasSubmitted) {
+                // All predictions are in
                 statusMessage.innerHTML = '<i class="fas fa-check-circle"></i><span>All predictions submitted! Results will be revealed shortly...</span>';
             }
         }
     });
 
     socket.on('all_predictions_revealed', (data) => {
-        if (data.gameId !== currentGameId) return;
+        console.log('Received all_predictions_revealed:', data);
         
         // Update UI for results view
+        waitingMessage.style.display = 'none';
         statusMessage.style.display = 'none';
         predictionCount.style.display = 'none';
-        waitingMessage.style.display = 'none';
+        predictionForm.style.display = 'none';
         predictionsContainer.innerHTML = '';
         
         // Generate prediction cards
@@ -391,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         predictionsList.style.display = 'block';
         
-        // Scroll to predictions
+        // Scroll to predictions section
         predictionsList.scrollIntoView({ behavior: 'smooth' });
         
         showToast('All predictions have been revealed!', true);
