@@ -14,9 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const secretCodeError = document.getElementById('secretCodeError');
     const createNewGameBtn = document.getElementById('createNewGameBtn');
     const backToJoinBtn = document.getElementById('backToJoinBtn');
-    const userInfoElement = document.getElementById('userInfo');
-    const usernameDisplay = document.getElementById('usernameDisplay');
-    const userAvatar = document.getElementById('userAvatar');
     const gameQuestionDisplay = document.querySelector('#gameScreen .game-title');
     const gameCodeDisplay = document.getElementById('gameCodeDisplay');
     const copyButton = document.querySelector('.copy-button');
@@ -78,9 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(screenId).style.display = 'block';
 
         // Additional setup for specific screens
-        if (screenId === 'gameScreen') {
-            userInfoElement.style.display = 'flex';
-        }
+
     }
 
     function generateRandomColor() {
@@ -213,8 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
             resetGameState();
             
             // Update UI with game info
-            usernameDisplay.textContent = username;
-            userAvatar.textContent = username.charAt(0).toUpperCase();
             gameQuestionDisplay.textContent = data.game.question;
             gameCodeDisplay.textContent = data.game.id;
             

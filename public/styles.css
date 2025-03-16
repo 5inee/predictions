@@ -93,32 +93,6 @@ body {
   color: var(--primary);
 }
 
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  display: none;
-}
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, var(--primary), var(--secondary));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 18px;
-  box-shadow: var(--shadow-sm);
-}
-
-.username {
-  font-weight: 500;
-  color: var(--medium);
-}
-
 /* Screen Styles */
 .screen {
   width: 100%;
