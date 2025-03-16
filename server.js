@@ -36,8 +36,10 @@ app.post('/api/games', async (req, res) => {
         const gameId = generateShortId(); // أو استخدم uuidv4()
         const newGame = new Game({
             id: gameId,
-            question: req.body.question, // السؤال من المستخدم
+            question: req.body.question,
             maxPredictors: 5, // ممكن تخليه متغير
+            predictors: new Map(), // تهيئة predictors
+            predictions: new Map(), // تهيئة predictions هنا
         });
         await newGame.save();
         res.json({ gameId }); // نرجع ID اللعبة
@@ -109,7 +111,9 @@ app.post('/api/games/:gameId/predict', async (req, res) => {
         if (!game.predictors.has(predictorId)) {
             return res.status(403).json({ error: 'Not a valid predictor' });
         }
-        if (game.predictions.size >= game.maxPredictors) {
+
+        //  تم التعديل هنا: استخدام الطريقة الثانية (فحص undefined) كبديل أسهل.
+        if (!game.predictions || game.predictions.size >= game.maxPredictors) {
             return res.status(400).json({ error: 'Predictions are full' });
         }
 
