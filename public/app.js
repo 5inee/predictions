@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const predictionCount = document.getElementById('predictionCount');
     const predictionsList = document.getElementById('predictionsList');
     const predictionsContainer = document.getElementById('predictionsContainer');
+    const loadingIndicator = document.getElementById('loadingIndicator'); // إضافة مؤشر التحميل
+
 
     // App State
     let currentGameId = null;
@@ -101,6 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        showLoading(); // إظهار مؤشر التحميل
+
         try {
             const response = await fetch('/api/games', {
                 method: 'POST',
@@ -124,6 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error creating game:', error);
             showToast('Failed to create game. Please try again.');
+        } finally {
+            hideLoading(); // إخفاء مؤشر التحميل
         }
     });
 
@@ -136,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Please enter both Game ID and your name');
             return;
         }
-
+        showLoading(); // إظهار مؤشر التحميل
         try {
             const response = await fetch(`/api/games/${gameId}/join`, {
                 method: 'POST',
@@ -174,9 +180,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             socket.emit('join_game', currentGameId);
 
+
         } catch (error) {
             console.error('Error joining game:', error);
             showToast(error.message || 'Failed to join game. Please try again.');
+        } finally {
+            hideLoading(); // إخفاء مؤشر التحميل
         }
     });
 
@@ -222,6 +231,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        showLoading(); // إظهار مؤشر التحميل
+
         try {
             const response = await fetch(`/api/games/${currentGameId}/predict`, {
                 method: 'POST',
@@ -252,6 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error submitting prediction:', error);
             showToast(error.message || 'Failed to submit prediction. Please try again.');
+        } finally {
+            hideLoading(); // إخفاء مؤشر التحميل
         }
     });
 
@@ -313,4 +326,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         predictionsList.style.display = 'block';
     });
+
+    // دوال المساعدة (Helper functions)
+    function showLoading() {
+        loadingIndicator.style.display = 'block';
+    }
+
+    function hideLoading() {
+        loadingIndicator.style.display = 'none';
+    }
 });

@@ -1,91 +1,63 @@
-:root {
-  --primary: #4361ee;
-  --primary-dark: #3a56d4;
-  --secondary: #7209b7;
-  --light: #f8f9fa;
-  --dark: #212529;
-  --success: #38b000;
-  --warning: #ffaa00;
-  --gray: #6c757d;
-  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+/* Reset and Basic Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f0f2f5;
-  color: var(--dark);
-}
-
-.container {
-  max-width: 800px;
-  margin: 0 auto;
+  background: linear-gradient(135deg, #4e54c8, #8f94fb);
+  color: #fff;
+  line-height: 1.6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
   padding: 20px;
 }
 
-header {
-  background-color: white;
-  padding: 15px 0;
-  box-shadow: var(--card-shadow);
-  margin-bottom: 30px;
+/* Utility Classes */
+.container {
+  width: 100%;
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
 
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
+.form-group {
+  margin-bottom: 15px;
 }
 
-.logo {
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--primary);
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #444;
+  font-weight: 600;
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-}
-
-.game-card {
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: var(--card-shadow);
-  padding: 25px;
-  margin-bottom: 30px;
-}
-
-.game-title {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: var(--dark);
-  font-size: 22px;
-}
-
-input,
+input[type="text"],
+input[type="password"],
 textarea {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 14px;
-  box-sizing: border-box;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #333;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  outline: none;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+  border-color: #007bff;
 }
 
 textarea {
@@ -93,282 +65,311 @@ textarea {
   min-height: 100px;
 }
 
-.form-group {
-  margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
 .btn {
   display: inline-block;
-  font-weight: 500;
-  padding: 12px 24px;
+  padding: 12px 25px;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  border-radius: 8px;
   font-size: 16px;
-  transition: all 0.2s;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease, transform 0.2s ease;
   text-align: center;
+  color: #fff;
+  background-color: #007bff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .btn-primary {
-  background-color: var(--primary);
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-dark);
+  background-color: #2ecc71;
 }
 
 .btn-secondary {
-  background-color: var(--light);
-  color: var(--dark);
-  border: 1px solid #ddd;
+  background-color: #3498db;
 }
-
-.btn-secondary:hover {
-  background-color: #e9ecef;
+.btn-secondary:hover,.btn-primary:hover {
+   opacity: 0.85;
 }
 
 .btn-link {
-  background: none;
-  color: var(--primary);
-  text-decoration: underline;
-  padding: 8px 16px;
+  color: #3498db;
+  text-decoration: none;
+  display: block;
+  margin-top: 10px;
 }
 
 .separator {
   text-align: center;
   margin: 20px 0;
-  color: var(--gray);
-  position: relative;
+  color: #777;
+  font-weight: bold;
 }
 
-.separator::before,
-.separator::after {
-  content: "";
-  display: block;
-  width: 40%;
-  height: 1px;
-  background-color: #ddd;
-  position: absolute;
-  top: 50%;
+/* Header Styles */
+header {
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  padding: 10px 0;
+  border-radius: 15px 15px 0 0;
+  margin-bottom: -20px;
+
 }
 
-.separator::before {
-  left: 0;
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.separator::after {
-  right: 0;
+.logo {
+  font-size: 24px;
+  font-weight: bold;
 }
 
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Game Card Styles */
+.game-card {
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.98);
+}
+
+.game-title {
+  color: #333;
+  margin-bottom: 25px;
+  text-align: center;
+  font-size: 28px;
+}
+
+/* Game Info Styles */
 .game-info {
-  background-color: #f8f9fa;
-  padding: 15px;
-  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+  color: #555;
 }
 
 .game-code {
-  margin-bottom: 10px;
-  font-weight: 500;
   font-size: 18px;
-  color: var(--primary);
 }
 
+.game-code span {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.player-count {
+  font-size: 18px;
+}
+
+/* Waiting Message Styles */
 .waiting-message {
-  color: var(--gray);
-}
-
-.prediction-form {
-  margin-bottom: 25px;
-}
-
-.status-message {
-  padding: 15px;
-  border-radius: 6px;
-  background-color: #e7f3ff;
-  border-left: 4px solid var(--primary);
+  text-align: center;
   margin-top: 20px;
-  display: none;
+  color: #777;
 }
 
+/* Prediction Form Styles */
+.prediction-form {
+  margin-top: 20px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Status Message Styles */
+.status-message {
+  text-align: center;
+  margin: 20px 0;
+  padding: 15px;
+  background-color: rgba(46, 204, 113, 0.2);
+  border-left: 5px solid #2ecc71;
+  color: #2ecc71;
+  border-radius: 8px;
+}
+
+/* Prediction Count Styles */
 .prediction-count {
   text-align: center;
-  margin: 25px 0 20px;
-  font-weight: 500;
-  color: var(--primary);
+  margin: 20px 0;
   font-size: 18px;
+  color: #555;
 }
 
+/* Predictions List Styles */
 .predictions-list {
-  display: none;
+  margin-top: 30px;
+}
+
+.predictions-list h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 22px;
 }
 
 .prediction-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 15px;
   margin-bottom: 15px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.prediction-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .prediction-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
 }
 
 .predictor-info {
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
 .predictor-avatar {
-  width: 30px;
-  height: 30px;
+  width: 35px;
+  height: 35px;
+  background-color: #007bff;
+  color: white;
   border-radius: 50%;
   display: flex;
-  align-items: center;
   justify-content: center;
-  color: white;
+  align-items: center;
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+.predictor-name {
   font-weight: bold;
-  font-size: 14px;
+  color: #444;
 }
 
 .timestamp {
-  color: var(--gray);
-  font-size: 12px;
+  color: #777;
+  font-size: 14px;
 }
 
 .prediction-content {
-  white-space: pre-line;
-  /* This preserves line breaks */
+  color: #555;
   line-height: 1.5;
+  word-wrap: break-word; /* To handle long words */
 }
 
-
-/* Prediction Form Styling */
-
-.prediction-form textarea {
-  width: 100%;
-  height: 500px;
-  padding: 12px;
-  border: 2px solid var(--primary);
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 16px;
-  box-sizing: border-box;
-  resize: vertical;
-  min-height: 120px;
-  /* Larger textarea */
-  transition: border-color 0.2s;
-}
-
-.prediction-form textarea:focus {
-  border-color: var(--primary-dark);
-  outline: none;
-}
-
-.button-group {
-  margin-bottom: 1rem;
-  /*  مسافة بين الأزرار وحقل النص */
-}
-
-.button-group button {
-  margin-right: 0.5rem;
-}
-
-
-/* Submit Button Styling */
-
-#submitPredictionBtn {
-  width: 100%;
-  margin-top: 15px;
-  padding: 14px 24px;
-  font-size: 18px;
-  font-weight: bold;
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-#submitPredictionBtn:hover {
-  background-color: var(--primary-dark);
-}
-
-#submitPredictionBtn:disabled {
-  background-color: var(--gray);
-  cursor: not-allowed;
-}
-
-/* Add these styles to your existing CSS file */
-
+/* Error message */
 .error-message {
-  color: #e63946;
-  font-size: 14px;
+  color: red;
   margin-top: 5px;
-  font-weight: 500;
+  display: none; /* Hidden by default */
 }
 
-input[type="password"] {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 14px;
-  box-sizing: border-box;
+/* Loading indicator */
+.loading-spinner {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 30px;
+  color: #007bff;
 }
 
-input[type="password"]:focus {
-  border-color: var(--primary);
-  outline: none;
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+      padding: 15px;
+  }
+
+  .game-card {
+      padding: 20px;
+  }
+
+  .form-group label {
+      font-size: 14px;
+  }
+
+  input[type="text"],
+  input[type="password"],
+  textarea {
+      padding: 10px;
+      font-size: 14px;
+  }
+
+  .btn {
+      padding: 10px 20px;
+      font-size: 14px;
+  }
+
+  .logo {
+      font-size: 20px;
+  }
+
+  .avatar {
+      width: 35px;
+      height: 35px;
+      font-size: 18px;
+  }
+}
+
+/* Animations */
+@keyframes shake {
+
+  10%,
+  90% {
+      transform: translateX(-1px);
+  }
+
+  20%,
+  80% {
+      transform: translateX(2px);
+  }
+
+  30%,
+  50%,
+  70% {
+      transform: translateX(-4px);
+  }
+
+  40%,
+  60% {
+      transform: translateX(4px);
+  }
 }
 
 .shake {
   animation: shake 0.5s;
 }
-
-@keyframes shake {
-
-  0%,
-  100% {
-      transform: translateX(0);
-  }
-
-  10%,
-  30%,
-  50%,
-  70%,
-  90% {
-      transform: translateX(-5px);
-  }
-
-  20%,
-  40%,
-  60%,
-  80% {
-      transform: translateX(5px);
-  }
-}
-
-textarea[readonly] {
-  background-color: #f8f9fa;
-  /*  لون خلفية فاتح */
-  color: #495057;
-  border: 1px solid #ced4da;
-}
-
- .toastify {
-     /*  تنسيقات إضافية هنا */
-     font-size: 16px;
- }
