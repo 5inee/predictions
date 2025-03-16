@@ -181,6 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
       // دالة لنسخ الـ Game ID
+      gameCodeDisplay.addEventListener('click', () => {
+        navigator.clipboard.writeText(currentGameId)
+            .then(() => {
+                showToast('Game ID copied to clipboard!', true);
+            })
+            .catch(err => {
+                console.error('Failed to copy Game ID:', err);
+                showToast('Failed to copy Game ID.');
+            });
+    });
 
     // لصق التوقع
     pastePredictionBtn.addEventListener('click', async () => {
@@ -227,8 +237,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             predictionForm.style.display = 'none';
-            statusMessage.style.display = 'block';
             hasSubmitted = true;
+
+            // هنا التعديلات:
+            if (data.allPredictionsSubmitted) {
+                // لو كل التوقعات اتقدمت، يبقى المستخدم ده هو الأخير
+                statusMessage.textContent = "Your prediction has been sent. Below you will find all the contestants' predictions, including your own.";
+            } else {
+                // لو لسه فيه متوقعين تانيين، يبقى الرسالة العادية
+                statusMessage.textContent = "Your prediction has been sent. The rest of the competitors' predictions will be revealed when all predictions are submitted.";
+            }
+            statusMessage.style.display = 'block'; // تأكد من إن الرسالة ظاهرة
 
         } catch (error) {
             console.error('Error submitting prediction:', error);
