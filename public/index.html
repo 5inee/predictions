@@ -7,16 +7,13 @@
     <title>PredictBattle - Real-time Prediction Game</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-        integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body>
     <header>
         <div class="container">
             <div class="header-content">
-                <div class="logo"><i class="fas fa-bolt"></i> PredictBattle</div>
+                <div class="logo">PredictBattle</div>
                 <div id="userInfo" class="user-info" style="display: none;">
                     <span id="usernameDisplay"></span>
                     <div id="userAvatar" class="avatar">P</div>
@@ -30,12 +27,12 @@
             <h1 class="game-title">Join a Prediction Game</h1>
 
             <div class="form-group">
-                <label for="gameId"><i class="fas fa-key"></i> Game ID:</label>
+                <label for="gameId">Game ID:</label>
                 <input type="text" id="gameId" placeholder="Enter 6-character game ID">
             </div>
 
             <div class="form-group">
-                <label for="username"><i class="fas fa-user"></i> Your Name:</label>
+                <label for="username">Your Name:</label>
                 <input type="text" id="username" placeholder="Enter your name">
             </div>
 
@@ -50,12 +47,12 @@
             <h1 class="game-title">Create a New Game</h1>
 
             <div class="form-group">
-                <label for="gameQuestion"><i class="fas fa-question-circle"></i> Question for Predictions:</label>
+                <label for="gameQuestion">Question for Predictions:</label>
                 <textarea id="gameQuestion" placeholder="Enter your question here.."></textarea>
             </div>
 
             <div class="form-group">
-                <label for="secretCode"><i class="fas fa-lock"></i> Secret Code:</label>
+                <label for="secretCode">Secret Code:</label>
                 <input type="password" id="secretCode" placeholder="Enter the secret code">
                 <div id="secretCodeError" class="error-message" style="display: none;">Invalid secret code</div>
             </div>
@@ -69,36 +66,34 @@
         <div class="game-card">
             <h1 class="game-title"></h1>
 
-            <div class="game-info">
-                <div id="gameCode" class="game-code">Game ID: <span id="gameCodeDisplay" style="cursor: pointer;"></span>
-                </div>
+            <div id="gameInfo" class="game-info">
+                <div id="gameCode" class="game-code">Game ID: <span id="gameCodeDisplay" style="cursor: pointer;"></span></div>
                 <div class="player-count"></div>
                 <div id="waitingMessage" class="waiting-message">Waiting for players to join...</div>
             </div>
 
             <div id="predictionForm" class="prediction-form">
                 <div class="form-group">
-                    <label for="prediction"><i class="fas fa-pencil-alt"></i> Your Prediction:</label>
+                    <label for="prediction">Your Prediction:</label>
                     <div class="button-group">
-                        <button id="pastePredictionBtn" type="button" class="btn btn-secondary"><i
-                                class="fas fa-paste"></i> Paste</button>
-                        <button id="clearPredictionBtn" type="button" class="btn btn-secondary"><i
-                                class="fas fa-trash"></i> Clear</button>
-                    </div>
-                    <textarea id="prediction" placeholder="Enter your prediction here..."></textarea>
+                        <button id="pastePredictionBtn" type="button" class="btn btn-secondary">Paste</button>
+                        <button id="clearPredictionBtn" type="button" class="btn btn-secondary">Clear</button>
+                      </div>
+                    <textarea id="prediction" placeholder="Enter your prediction here..." readonly></textarea>
                 </div>
                 <button id="submitPredictionBtn" type="button" class="btn btn-primary">Submit Prediction</button>
             </div>
 
-            <div id="statusMessage" class="status-message"></div>
+            <div id="statusMessage" class="status-message">
+                Your prediction has been sent. The rest of the competitors' predictions will be revealed when all
+                predictions are submitted.
+            </div>
+
             <div id="predictionCount" class="prediction-count"></div>
 
             <div id="predictionsList" class="predictions-list">
                 <h3>All Predictions</h3>
                 <div id="predictionsContainer"></div>
-            </div>
-            <div id="loadingIndicator" class="loading-spinner" style="display: none;">
-                <i class="fas fa-spinner fa-spin"></i>
             </div>
         </div>
     </div>
