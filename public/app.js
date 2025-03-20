@@ -88,11 +88,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function formatTime(dateString) {
         const date = new Date(dateString);
-        return date.toLocaleTimeString(undefined, { 
-            hour: '2-digit', 
+        return `\u200E${date.toLocaleString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            hour: '2-digit',
             minute: '2-digit',
-            hour12: true 
-        });
+            hour12: true
+        }).replace(',', ' |')}`;
     }
 
     function resetGameState() {
